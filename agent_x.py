@@ -4,7 +4,7 @@ from typing import Dict, Any
 class AgentX:
     """Initial Proposal Agent"""
 
-    def init(self, name: str = "Agent_X"):
+    def __init__(self, name: str = "Agent_X"):
         self.name = name
 
     def analyze_question(self, question: str) -> Dict[str, Any]:
@@ -62,5 +62,5 @@ def main():
     print("Reasoning:", result["reasoning"])
 
 
-if name == "main":
-    main()
+if __name__ == "__main__":
+    main() 
