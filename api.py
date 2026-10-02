@@ -17,14 +17,17 @@ app.add_middleware(
         "http://127.0.0.1:5173",
         "http://localhost:5174",
         "http://127.0.0.1:5174",
+        "https://omegatruth.onrender.com",
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+
 class QuestionRequest(BaseModel):
     question: str = Field(min_length=5, max_length=500)
+
 
 @app.get("/")
 def root():
@@ -39,9 +42,11 @@ def root():
         ],
     }
 
+
 @app.post("/analyze")
 def analyze(request: QuestionRequest):
     question = request.question.strip()
+
     if not question:
         raise HTTPException(
             status_code=400,
@@ -52,11 +57,13 @@ def analyze(request: QuestionRequest):
     with ThreadPoolExecutor(max_workers=2) as pool:
         future_a = pool.submit(research_supporting, question, 6)
         future_b = pool.submit(research_challenging, question, 6)
+
         supporting = future_a.result()
         challenging = future_b.result()
 
     agent_a = AgentX().analyze_question(question, supporting)
     agent_b = AgentY().analyze_question(question, challenging)
+
     negotiation = negotiate(agent_a, agent_b, question)
 
     return {
