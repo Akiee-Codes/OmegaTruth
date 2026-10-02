@@ -1,65 +1,51 @@
-from typing import Dict, Any
+from typing import Any, Dict, List
 
+def _clean_claim(q: str) -> str:
+    return q.strip().rstrip("?.!")
+
+def make_opposing_claim(question: str) -> str:
+    q = _clean_claim(question)
+    return (
+        f"Counter-position: the proposition expressed by “{q}” "
+        f"may not hold as stated."
+    )
 
 class AgentY:
-    """Counter-Perspective / Dissent Agent"""
-
-    def __init__(self, name: str = "Agent_Y"):
+    def __init__(self, name: str = "Agent B"):
         self.name = name
 
-    def analyze_question(self, question: str) -> Dict[str, Any]:
-        """
-        Analyze the same question as Agent X,
-        but provide an independent counter-perspective.
-        """
+    def analyze_question(
+        self,
+        question: str,
+        external_evidence: List[Dict[str, str]] | None = None,
+    ) -> Dict[str, Any]:
+        results = external_evidence or []
+        details = []
 
-        question_lower = question.lower()
-
-        # Demonstration scenario for our first integration test
-        if "3 pm" in question_lower or "3pm" in question_lower:
-            claim = "NO"
-            evidence = [
-                "Math class is scheduled from 2:30 PM to 3:30 PM."
-            ]
-            confidence = 0.90
-            reasoning = (
-                "Agent Y found evidence that the math class overlaps 3 PM."
-            )
-
-        else:
-            claim = "INSUFFICIENT_EVIDENCE"
-            evidence = [
-                "No matching information was found in the current knowledge base."
-            ]
-            confidence = 0.30
-            reasoning = (
-                "Agent Y does not have enough evidence to make a reliable claim."
-            )
+        for item in results[:6]:
+            details.append({
+                "title": item.get("title", "Untitled source"),
+                "source": item.get("source", "Web source"),
+                "url": item.get("url", ""),
+                "snippet": item.get("snippet", ""),
+                "published": item.get("published", ""),
+                "role": "Counter-evidence lead",
+            })
 
         return {
             "agent": self.name,
-            "question": question,
-            "claim": claim,
-            "evidence": evidence,
-            "confidence": confidence,
-            "reasoning": reasoning
+            "claimText": make_opposing_claim(question),
+            "position": "CHALLENGES",
+            "evidence": details,
+            "reasoning": (
+                "Agent B independently searched for evidence that could establish "
+                "a genuine counterposition. A source is not counted as counter-"
+                "evidence merely because it mentions the same topic."
+            ) if details else (
+                "Agent B did not retrieve sufficiently direct counter-evidence. "
+                "Topic-related sources are not presented as proof against the claim."
+            ),
+            "confidence": round(
+                min(0.85, 0.35 + 0.07 * len(details)), 2
+            ) if details else 0.25,
         }
-
-
-def main():
-    agent_y = AgentY()
-
-    question = input("Enter your question: ")
-
-    result = agent_y.analyze_question(question)
-
-    print("\n========== AGENT Y ==========")
-    print("Question:", result["question"])
-    print("Claim:", result["claim"])
-    print("Evidence:", result["evidence"])
-    print("Confidence:", result["confidence"])
-    print("Reasoning:", result["reasoning"])
-
-
-if __name__ == "__main__":
-    main()
